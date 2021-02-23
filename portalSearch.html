@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<script>
+
+		//Environment specific parameters
+		var protocol = "https"
+		var domain = "ecosystem.egain.cloud"
+		var portalid = "555500000001000"
+
+		var xhr = new XMLHttpRequest();		
+		var url = protocol+'://'+domain+'/system/ws/v15/ss/portal/'+portalid+'/authentication/anonymous'
+		var data = new FormData();	
+		xhr.open('POST', url, true);	
+		xhr.setRequestHeader('Content-type', 'application/json');
+		xhr.setRequestHeader('Accept', 'application/json');
+		xhr.setRequestHeader('Accept-Language', 'en-US');
+		xhr.onload = function () {
+				// do something			
+				if (typeof(xhr.getResponseHeader("X-egain-session")) != 'undefined') {
+					sessionStorage.setItem("egain_session_id", xhr.getResponseHeader("X-egain-session"))
+					alert("session_id: "+sessionStorage.egain_session_id);					
+				}
+		};
+		if (typeof(sessionStorage.egain_session_id) == 'undefined') {
+		    alert("Sending Anonymos access")
+			xhr.send(data);
+		}	
+	</script>		
+	</head>
+	<body>
+	<form id = "myForm">
+			<label>Portal Id</label>
+			<input type="text" name="portalid" value="555500000001000" />	
+			<input type="button" onclick="search()" value="Search">
+			<p id="result"></p>
+	</form>	
+	<script>
+	function search () {
+		alert("Trigger search");
+		var data = document.getElementById("myForm").elements;
+		//alert(data["portalid"].value);
+		alert(data["portalid"].value);
+		var portalid = data["portalid"].value
+		// submit via XHR
+		var xhr = new XMLHttpRequest();
+		var url = protocol+'://'+domain+'/system/ws/v11/ss/search?portalId='+portalid+'&q=eGain&rangestart=0&rangesize=5&usertype=customer&$attribute=all'
+		xhr.open('GET', url, true);	
+		xhr.setRequestHeader('Content-type', 'application/json');
+		xhr.setRequestHeader('Accept', 'application/json');
+		xhr.setRequestHeader('Accept-Language', 'en-US');	
+		xhr.setRequestHeader('X-egain-session', sessionStorage.egain_session_id);
+		alert("session id:"+sessionStorage.egain_session_id);
+		xhr.onload = function () {
+			// do something to response
+			if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+				//alert("Success");
+				sessionStorage.clear("egain_session_id");
+				var json = JSON.stringify(xhr.responseText)
+				document.getElementById("result").innerHTML = json;
+			}
+			else {
+				alert("Failure");
+				sessionStorage.clear("egain_session_id");				
+				alert(xhr.responseXML);			  
+			}
+		};
+		alert("Sending Search")
+		xhr.send(data);		
+	}	
+	</script>
+	</body>
+</html>
